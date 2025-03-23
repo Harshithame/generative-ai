@@ -7,7 +7,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Music } from "lucide-react";
+import {
+  Music,
+  Download,
+  Rewind,
+  FastForward,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 
 import { Heading } from "@/components/heading";
 import { Button } from "@/components/ui/button";
@@ -30,6 +39,7 @@ const MusicPage = () => {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [volume, setVolume] = useState(1);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -150,6 +160,29 @@ const MusicPage = () => {
     }
   };
 
+  const toggleMute = () => {
+    if (audioRef.current) {
+      if (volume > 0) {
+        audioRef.current.volume = 0;
+        setVolume(0);
+      } else {
+        audioRef.current.volume = 1;
+        setVolume(1);
+      }
+    }
+  };
+
+  const downloadAudio = () => {
+    if (music) {
+      const a = document.createElement("a");
+      a.href = music;
+      a.download = "generated-music.mp3";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+
   return (
     <div>
       <Heading
@@ -248,29 +281,16 @@ const MusicPage = () => {
                               height: `${height}px`,
                               opacity: i % 2 === 0 ? 0.7 : 1,
                             }}
-                            className="w-1 mx-[2px] bg-emerald-500 rounded-full transition-all duration-75"
+                            className="w-1 mx-[2px] bg-emerald-500 rounded-full transition-all duration-150"
                           />
                         );
                       })}
                       {!isPlaying && (
                         <div
-                          className="absolute flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full cursor-pointer"
+                          className="absolute flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-full cursor-pointer transition-transform hover:scale-110 duration-200"
                           onClick={togglePlayPause}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="text-white"
-                          >
-                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                          </svg>
+                          <Play className="text-white h-6 w-6" />
                         </div>
                       )}
                     </div>
@@ -295,11 +315,11 @@ const MusicPage = () => {
               </CardContent>
               <Separator />
               <CardFooter className="flex justify-between p-4">
-                <div className="flex space-x-4">
+                <div className="flex items-center space-x-4">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-full"
+                    className="h-8 w-8 rounded-full transition-all hover:scale-110 duration-200"
                     onClick={() => {
                       if (audioRef.current) {
                         audioRef.current.currentTime = Math.max(
@@ -309,62 +329,24 @@ const MusicPage = () => {
                       }
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polygon points="11 19 2 12 11 5 11 19"></polygon>
-                      <polygon points="22 19 13 12 22 5 22 19"></polygon>
-                    </svg>
+                    <Rewind className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-10 w-10 rounded-full"
+                    className="h-10 w-10 rounded-full transition-transform hover:scale-110 duration-200"
                     onClick={togglePlayPause}
                   >
                     {isPlaying ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect x="6" y="4" width="4" height="16"></rect>
-                        <rect x="14" y="4" width="4" height="16"></rect>
-                      </svg>
+                      <Pause className="h-5 w-5" />
                     ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                      </svg>
+                      <Play className="h-5 w-5" />
                     )}
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-full"
+                    className="h-8 w-8 rounded-full transition-all hover:scale-110 duration-200"
                     onClick={() => {
                       if (audioRef.current) {
                         audioRef.current.currentTime = Math.min(
@@ -374,52 +356,31 @@ const MusicPage = () => {
                       }
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polygon points="13 19 22 12 13 5 13 19"></polygon>
-                      <polygon points="2 19 11 12 2 5 2 19"></polygon>
-                    </svg>
+                    <FastForward className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => {
-                    if (audioRef.current) {
-                      if (audioRef.current.volume === 1) {
-                        audioRef.current.volume = 0;
-                      } else {
-                        audioRef.current.volume = 1;
-                      }
-                    }
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full transition-all hover:scale-110 duration-200"
+                    onClick={toggleMute}
                   >
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                  </svg>
-                </Button>
+                    {volume > 0 ? (
+                      <Volume2 className="h-4 w-4" />
+                    ) : (
+                      <VolumeX className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full transition-all hover:scale-110 duration-200"
+                    onClick={downloadAudio}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </div>
