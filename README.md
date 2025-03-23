@@ -1,6 +1,6 @@
 # AI Platform with Next.js 13, React, Tailwind, Prisma, Stripe
 
-https://github.com/SHADOW-LIGHTS/ai-saas-platform/assets/108618163/802c1a9d-37bc-47b2-ac7b-a025bab78039
+[Demo Video](https://github.com/SHADOW-LIGHTS/ai-saas-platform/assets/108618163/802c1a9d-37bc-47b2-ac7b-a025bab78039)
 
 Features:
 
@@ -23,32 +23,33 @@ Features:
 - How to reuse layouts
 - Folder structure in Next 13 App Router
 
-### Prerequisites
+## Prerequisites
 
-**Node version 18.x.x**
+### Node Version Requirements
 
-### Cloning the repository
+Node version 18.x.x
+
+## Cloning the repository
 
 ```shell
 git clone https://github.com/AntonioErdeljac/next13-ai-saas.git
 ```
 
-### Install packages
+## Install packages
 
 ```shell
 npm i
 ```
 
-### Setup Prisma
+## Setup Prisma
 
 Add MySQL Database (I used PlanetScale)
 
 ```shell
 npx prisma db push
-
 ```
 
-### Start the app
+## Start the app
 
 ```shell
 npm run dev
@@ -58,6 +59,6 @@ npm run dev
 
 Running commands with npm `npm run [command]`
 
-| command         | description                              |
-| :-------------- | :--------------------------------------- |
-| `dev`           | Starts a development instance of the app |
+| command | description                              |
+| :------ | :--------------------------------------- |
+| `dev`   | Starts a development instance of the app |

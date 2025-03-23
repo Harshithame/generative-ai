@@ -23,6 +23,7 @@ const MusicPage = () => {
   const proModal = useProModal();
   const router = useRouter();
   const [music, setMusic] = useState<string>();
+  const [audioError, setAudioError] = useState<string>();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,16 +38,60 @@ const MusicPage = () => {
     try {
       setMusic(undefined);
 
+      console.log("Submitting with values:", values);
       const response = await axios.post("/api/music", values);
-      console.log(response);
+      console.log("Client received response:", response.data);
 
-      setMusic(response.data.audio);
+      let audioUrl = null;
+
+      // Handle the response flexibly, similar to video generation
+      if (response.data?.url && typeof response.data.url === "string") {
+        // Standard format with url property
+        audioUrl = response.data.url;
+      } else if (
+        response.data?.audio &&
+        typeof response.data.audio === "string"
+      ) {
+        // Legacy format with audio property for backward compatibility
+        audioUrl = response.data.audio;
+      } else if (Array.isArray(response.data) && response.data.length > 0) {
+        // Handle array response
+        audioUrl = response.data[0];
+      } else if (
+        typeof response.data === "string" &&
+        response.data.startsWith("http")
+      ) {
+        // Direct string URL response
+        audioUrl = response.data;
+      }
+
+      if (!audioUrl) {
+        console.error("Invalid response format:", response.data);
+        toast.error("Failed to generate audio. Please try again.");
+        return;
+      }
+
+      // Verify the URL is valid
+      if (!audioUrl.startsWith("http")) {
+        console.error("Invalid audio URL:", audioUrl);
+        toast.error("Invalid audio URL received. Please try again.");
+        return;
+      }
+
+      setMusic(audioUrl);
+      toast.success("Music generated successfully!");
       form.reset();
     } catch (error: any) {
+      console.error("Error:", error);
+
       if (error?.response?.status === 403) {
         proModal.onOpen();
       } else {
-        toast.error("Something went wrong.");
+        toast.error(
+          `Error: ${
+            error?.response?.data || error?.message || "Something went wrong"
+          }`
+        );
       }
     } finally {
       router.refresh();
@@ -57,7 +102,7 @@ const MusicPage = () => {
     <div>
       <Heading
         title="Music Generation"
-        description="Turn your prompt into music."
+        description="Turn your prompt into music using MusicGen."
         icon={Music}
         iconColor="text-emerald-500"
         bgColor="bg-emerald-500/10"
@@ -87,7 +132,7 @@ const MusicPage = () => {
                     <Input
                       className="border-0 outline-none focus-visible:ring-0 focus-visible:ring-transparent"
                       disabled={isLoading}
-                      placeholder="Piano solo"
+                      placeholder="Chill music with acoustic guitar and piano"
                       {...field}
                     />
                   </FormControl>
@@ -110,10 +155,26 @@ const MusicPage = () => {
           </div>
         )}
         {!music && !isLoading && <Musics label="No music generated." />}
+        {audioError && (
+          <div className="p-4 text-red-500 text-center">{audioError}</div>
+        )}
         {music && (
-          <audio controls className="w-full mt-8">
-            <source src={music} />
-          </audio>
+          <div className="mt-8">
+            <audio
+              controls
+              className="w-full"
+              src={music}
+              onError={(e) => {
+                console.error("[AUDIO_LOAD_ERROR]", e);
+                setAudioError(
+                  "Failed to load the audio. Please try regenerating."
+                );
+                setMusic(undefined);
+              }}
+            >
+              Your browser does not support the audio element.
+            </audio>
+          </div>
         )}
       </div>
     </div>

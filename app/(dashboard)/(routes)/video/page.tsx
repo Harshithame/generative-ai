@@ -23,6 +23,7 @@ const VideoPage = () => {
   const router = useRouter();
   const proModal = useProModal();
   const [video, setVideo] = useState<string>();
+  const [videoError, setVideoError] = useState<string>();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,16 +37,52 @@ const VideoPage = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setVideo(undefined);
+      setVideoError(undefined);
 
       const response = await axios.post("/api/video", values);
+      console.log("Client received response:", response.data);
 
-      setVideo(response.data[0]);
+      let videoUrl = null;
+
+      // Handle the response more flexibly
+      if (response.data?.url && typeof response.data.url === "string") {
+        // Standard format with url property
+        videoUrl = response.data.url;
+      } else if (Array.isArray(response.data) && response.data.length > 0) {
+        // Handle array response
+        videoUrl = response.data[0];
+      } else if (
+        typeof response.data === "string" &&
+        response.data.startsWith("http")
+      ) {
+        // Direct string URL response
+        videoUrl = response.data;
+      }
+
+      if (!videoUrl) {
+        console.error("Invalid response format:", response.data);
+        throw new Error("Invalid response format from server");
+      }
+
+      // Verify the URL is valid
+      if (!videoUrl.startsWith("http")) {
+        console.error("Invalid video URL:", videoUrl);
+        throw new Error("Invalid video URL received");
+      }
+
+      setVideo(videoUrl);
       form.reset();
     } catch (error: any) {
       if (error?.response?.status === 403) {
         proModal.onOpen();
       } else {
-        toast.error("Something went wrong.");
+        const errorMessage =
+          error?.response?.data ||
+          error.message ||
+          "Something went wrong generating the video.";
+        console.error("[VIDEO_ERROR]", error);
+        toast.error(errorMessage);
+        setVideoError("Failed to generate video. Please try again.");
       }
     } finally {
       router.refresh();
@@ -109,13 +146,26 @@ const VideoPage = () => {
           </div>
         )}
         {!video && !isLoading && <Videos label="No video files generated." />}
+        {videoError && (
+          <div className="p-4 text-red-500 text-center">{videoError}</div>
+        )}
         {video && (
-          <video
-            controls
-            className="w-full aspect-video mt-8 rounded-lg border bg-black"
-          >
-            <source src={video} />
-          </video>
+          <div className="mt-8">
+            <video
+              controls
+              className="w-full aspect-video rounded-lg border bg-black"
+              onError={(e) => {
+                console.error("[VIDEO_LOAD_ERROR]", e);
+                setVideoError(
+                  "Failed to load the video. Please try regenerating."
+                );
+                setVideo(undefined);
+              }}
+            >
+              <source src={video} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         )}
       </div>
     </div>

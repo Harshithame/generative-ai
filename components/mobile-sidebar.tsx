@@ -9,7 +9,7 @@ import { Sidebar } from "@/components/sidebar";
 
 export const MobileSidebar = ({
   apiLimitCount = 0,
-  isPro = false
+  isPro = false,
 }: {
   apiLimitCount: number;
   isPro: boolean;
@@ -27,7 +27,7 @@ export const MobileSidebar = ({
   return (
     <Sheet>
       <SheetTrigger>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon" className="md:hidden" asChild>
           <Menu />
         </Button>
       </SheetTrigger>
